@@ -3,16 +3,36 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const CryptoJS = require('crypto-js');
+const  MaskData  =  require ( 'maskdata' ) ;
+const  emailMask2Options  =  { 
+  maskWith : "*" ,  
+  unmaskedStartCharactersBeforeAt : 3 , 
+  unmaskedEndCharactersAfterAt : 2 , 
+  maskAtTheRate : false 
+}
+/*const  emailMask2Options  =  { 
+    maskWith : "*" ,  
+    unmaskedStartCharactersBeforeAt : 3 , 
+    unmaskedEndCharactersAfterAt : 2 , 
+    maskAtTheRate : faux 
+} ;
 
+const  email  =  "mon.test.email@testEmail.com" ;
+
+const  maskedEmail  =  MaskData . maskEmail2 ( email ,  emailMask2Options ) ;
+*/
+// Sortie: my.********@**********om
  exports.signup = (req, res, next) => { 
   try{
-    let cryptedMail = CryptoJS.SHA3(req.body.email).toString();
+    //let cryptedMail = CryptoJS.SHA3(req.body.email).toString();
     bcrypt.hash(req.body.password, 10)
       .then(hash => {
         const user = new User({
-          'email': cryptedMail,
+          'email': req.body.email,
           'password': hash
         });
+        const  maskedEmail  =  MaskData.maskEmail2(email, emailMask2Options);
+        
         user.save()
           .then(() => res.status(201).json({"message": 'Utilisateur créé !' }))
           .catch(error => {
@@ -28,8 +48,9 @@ const CryptoJS = require('crypto-js');
 
 exports.login = (req, res, next) => {
   try{
-    let cryptedMail = CryptoJS.SHA3(req.body.email).toString();
-    User.findOne({ email : cryptedMail }).then(user => {
+    const  maskedEmail  =  MaskData.maskEmail2(req.body.email, emailMask2Options);
+    //let cryptedMail = CryptoJS.SHA3(req.body.email).toString();
+    User.findOne({ email :maskedEmail}).then(user => {
     bcrypt.compare(req.body.password, user.password)
       .then(valid => {
         if (!valid) {
