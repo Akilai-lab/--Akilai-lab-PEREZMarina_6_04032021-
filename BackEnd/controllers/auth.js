@@ -25,14 +25,14 @@ const  maskedEmail  =  MaskData . maskEmail2 ( email ,  emailMask2Options ) ;
  exports.signup = (req, res, next) => { 
   try{
     //let cryptedMail = CryptoJS.SHA3(req.body.email).toString();
+    const  maskedEmail  =  MaskData.maskEmail2(req.body.email, emailMask2Options);
+    console.log(maskedEmail);
     bcrypt.hash(req.body.password, 10)
       .then(hash => {
         const user = new User({
-          'email': req.body.email,
+          'email': maskedEmail,
           'password': hash
         });
-        const  maskedEmail  =  MaskData.maskEmail2(email, emailMask2Options);
-        
         user.save()
           .then(() => res.status(201).json({"message": 'Utilisateur créé !' }))
           .catch(error => {
@@ -50,6 +50,7 @@ exports.login = (req, res, next) => {
   try{
     const  maskedEmail  =  MaskData.maskEmail2(req.body.email, emailMask2Options);
     //let cryptedMail = CryptoJS.SHA3(req.body.email).toString();
+    console.log(maskedEmail);
     User.findOne({ email :maskedEmail}).then(user => {
     bcrypt.compare(req.body.password, user.password)
       .then(valid => {
