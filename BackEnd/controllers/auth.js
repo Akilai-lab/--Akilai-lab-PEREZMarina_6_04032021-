@@ -27,13 +27,16 @@ const  maskedEmail  =  MaskData . maskEmail2 ( email ,  emailMask2Options ) ;
     //let cryptedMail = CryptoJS.SHA3(req.body.email).toString();
     const  maskedEmail  =  MaskData.maskEmail2(req.body.email, emailMask2Options);
     console.log(maskedEmail);
+    //on crée une constante qui va masquer le mail de l'utilisateur
     bcrypt.hash(req.body.password, 10)
+    //on crypte le mot de passe
       .then(hash => {
         const user = new User({
           'email': maskedEmail,
           'password': hash
         });
         user.save()
+        //on enregistre les information de l'utilisateur
           .then(() => res.status(201).json({"message": 'Utilisateur créé !' }))
           .catch(error => {
             console.log(error)
@@ -50,8 +53,11 @@ exports.login = (req, res, next) => {
   try{
     const  maskedEmail  =  MaskData.maskEmail2(req.body.email, emailMask2Options);
     //let cryptedMail = CryptoJS.SHA3(req.body.email).toString();
+    //on masque l'adresse mail pour qu'elle soit reconnue par la bdd
     console.log(maskedEmail);
     User.findOne({ email :maskedEmail}).then(user => {
+      //on va rechercher les données de l'utilisateur 
+      //et comparer le mod de passe tapé à celui de la bdd
     bcrypt.compare(req.body.password, user.password)
       .then(valid => {
         if (!valid) {
