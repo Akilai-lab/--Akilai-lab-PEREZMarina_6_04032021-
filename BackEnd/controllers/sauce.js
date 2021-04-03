@@ -49,12 +49,17 @@ exports.getOneSauce = (req, res, next) => {
 };
 
 exports.modifySauce = (req, res, next) => {
+
   const sauceObject = req.file ?
+  //on crée un objet sauceObject qui regarde si req.file existe ou non
     {
       ...JSON.parse(req.body.sauce),
       imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
     } : { ...req.body };
+    //Si oui, on traite la nouvelle image
+    //Si non, on traite le nouvel objet entrant
   Sauce.updateOne({_id: req.params.id}, {...sauceObject, _id: req.params.id})
+  //puis on modifie les éléments de la sauce avec comme paramètre l'id de sauce
   .then(() => {
     console.log(Sauce)
     res.status(200).json({ message: 'Objet modifié !'})
@@ -68,10 +73,14 @@ exports.modifySauce = (req, res, next) => {
 exports.deleteSauce = (req, res, next) => {
   //*ngIf="userId === sauce.userId"
   Sauce.findOne({ _id: req.params.id })
+  //on recherche la sauce en fonction de son id
   .then(sauce =>{
     const filename = sauce.imageUrl.split('/images/')[1];
     fs.unlink(`images/${filename}`, () => {
+      //on utilise unlink pour supprimer le fichier en lui passant en paramètre
+      //le fichier à supprimer
           Sauce.deleteOne({ _id: req.params.id })
+          //on supprime de la bdd la sauce
           .then(() => res.status(200).json({ message: 'La sauce a bien été supprimée !'}))
           .catch(error => {
             console.log(error)
@@ -85,27 +94,35 @@ exports.likeASauce = (req, res, next) => {
 // on récupére les données de Sauce
   let like = req.body.like;
   const userId = req.body.userId;
-
+  //on enregistre la propriété like et userId
   switch (like) {
     case 1 :
       Sauce.updateOne({ _id: req.params.id }, { $addToSet : { usersLiked : userId } , $inc: {likes : 1}})
+      //dans le cas ou like est = 1 on va modifier la sauce en ajoutant à 
+      //usersLiked l'id de l'utilisateur et en incrémentant la valeur de likes
       .then( () => res.status(201).json({message : "j'aime"}))
       .catch(error => res.status(404).json({error : error}))
       break;
     case 0:
       if({usersLiked : userId}) {
+        //dans le cas ou like est = 0 et où userId est présent dans usersLiked
         Sauce.updateOne({ _id: req.params.id }, {$pull : { usersLiked : userId }, $set: {likes : 0}})
+        //on modifie la sauce en enlevant de usersLiked l'userId et en donnant une valeur de 0 à likes
         .then( () => res.status(201).json({message : "je n'aime pas"}))
         .catch(error => res.status(404).json({error : error}))
       }
       if({usersDisliked : userId}) {
+        //dans le cas ou like est = 0 et où userId est présent dans usersDisliked
         Sauce.updateOne({ _id: req.params.id }, {$pull : { usersDisliked : userId } , $set: {dislikes : 0}})
+        //on modifie la sauce en enlevant de usersDisliked l'userId et en donnant une valeur de 0 à dislikes
         .then( () => res.status(201).json({message : "je n'aime pas"}))
         .catch(error => res.status(404).json({error : error}))
       }
       break;
     case -1:
       Sauce.updateOne({ _id: req.params.id }, { $addToSet : { usersDisliked : userId } , $inc: {dislikes : -1}})
+      //dans le cas ou like est = -1 on va modifier la sauce en ajoutant à 
+      //usersDisliked l'id de l'utilisateur et en décrémentant la valeur de dislikes
       .then( () => res.status(201).json({message : "je n'aime pas"}))
       .catch(error => res.status(404).json({error : error}))
       break;
